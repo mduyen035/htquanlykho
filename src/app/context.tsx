@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Database, Role, User } from '../domain/model';
 import type { Command } from '../application/ports';
 import { repository, isMock, http } from './container';
+import { TOKEN_KEY } from '../infrastructure/repositories';
 const userSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -33,7 +34,6 @@ const AppContext = createContext<Context | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [viewBranch, setViewBranch] = useState({ path: '', id: 'all' });
   const [user, setUser] = useState<User | null>(() => {
-    if (!isMock) return null;
     try {
       const parsed = userSchema.safeParse(
         JSON.parse(sessionStorage.getItem('trinh-user') || 'null'),
@@ -60,7 +60,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   useEffect(() => {
-    if (user) void reload();
+    if (user) {
+      if (!isMock) {
+        void http
+          .request('/auth/me')
+          .then(() => reload())
+          .catch(() => {
+            sessionStorage.removeItem(TOKEN_KEY);
+            sessionStorage.removeItem('trinh-user');
+            setUser(null);
+          });
+      } else void reload();
+    }
   }, [user, reload]);
   useEffect(() => {
     if (!notice) return;
@@ -76,23 +87,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
           throw new Error('Tên đăng nhập hoặc mật khẩu không đúng.');
         loggedIn = accounts[username];
         sessionStorage.setItem('trinh-user', JSON.stringify(loggedIn));
-      } else
-        loggedIn = userSchema.parse(
-          await http.request('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ username, password }),
-          }),
-        );
+      } else {
+        const result = (await http.request('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password }),
+        })) as {
+          token: string;
+          user: { id: string; name: string; role: string; branchIds: string[] };
+        };
+        sessionStorage.setItem(TOKEN_KEY, result.token);
+        loggedIn = userSchema.parse({
+          id: result.user.id,
+          name: result.user.name,
+          role: (
+            { chucuahang: 'owner', quanly: 'manager', nhanvien: 'staff' } as Record<string, string>
+          )[result.user.role],
+          branchId: result.user.branchIds[0] || '',
+        });
+        sessionStorage.setItem('trinh-user', JSON.stringify(loggedIn));
+      }
       setUser(loggedIn);
     } finally {
       setBusy(false);
     }
   }
   async function logout() {
-    if (!isMock) await http.request('/auth/logout', { method: 'POST' });
-    sessionStorage.removeItem('trinh-user');
-    setUser(null);
-    setDb(null);
+    try {
+      if (!isMock) await http.request('/auth/logout', { method: 'POST' });
+    } finally {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem('trinh-user');
+      setUser(null);
+      setDb(null);
+    }
   }
   async function run(command: Command, message = 'Lưu thông tin thành công!') {
     if (!user || busy) return false;

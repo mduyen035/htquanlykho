@@ -1,6 +1,6 @@
 # Trình Cà Phê — Quản trị tồn kho & hao hụt
 
-Ứng dụng React + TypeScript + Vite theo Clean Architecture, dựng từ Figma `3r0MaVbRRf7a6gKV2EVfh3` và báo cáo SDD `50K141.08.3007_da_danh_so.docx` (bản sửa đổi 08/11/2026). Giao diện tiếng Việt, mock data có lưu tại trình duyệt, có adapter REST để tích hợp sau. Chưa có backend thật và chưa triển khai hosting.
+Ứng dụng React + TypeScript + Vite theo Clean Architecture, dựng từ Figma `3r0MaVbRRf7a6gKV2EVfh3` và báo cáo SDD `50K141.08.3007_da_danh_so.docx` (bản sửa đổi 08/11/2026). Giao diện tiếng Việt có chế độ mock để demo và adapter REST kết nối backend Trình Cà Phê.
 
 ## Chạy dự án
 
@@ -41,7 +41,7 @@ npm.cmd run preview
 - Kiểm kê: nhập số thực tế, tự đối chiếu số hệ thống, đề xuất điều chỉnh nếu có chênh lệch. Nhân viên không thấy tồn lý thuyết hoặc chênh lệch.
 - Bốn nhóm phê duyệt; xem chi tiết, chấp thuận, từ chối có lý do và lịch sử quyết định.
 - Công thức: xem định lượng/phiên bản/lịch sử; đề xuất thêm/sửa/xóa, quản lý giữ phiên bản cũ cho đến khi được duyệt; Chủ cửa hàng áp dụng trực tiếp.
-- Dữ liệu bán hàng: tải tệp mẫu `.xlsx`, kiểm tra và xem trước; nhập theo tháng/quý và chi nhánh; xác nhận thay thế kỳ chồng nhau, hoàn tiêu hao cũ trước khi tính dữ liệu mới. Món thiếu công thức được cảnh báo riêng.
+- Dữ liệu bán hàng: tải tệp mẫu `.xlsx`, kiểm tra và xem trước; nhập theo tháng/quý và chi nhánh; xác nhận thay thế kỳ chồng nhau. Tiêu hao là số lý thuyết, không tự trừ tồn kho. Món thiếu công thức được cảnh báo riêng.
 - Báo cáo tồn kho theo ngày có snapshot và hao hụt theo kỳ; lọc và xuất Excel thật.
 - Trạng thái tải, lỗi, rỗng, thông báo kết quả; dialog bàn phím, focus, menu mobile và bảng cuộn ngang.
 
@@ -65,12 +65,12 @@ docs/
 
 UI gửi command qua `useApp().run()`. `InventoryRepository` là cổng dữ liệu. Mock gọi `executeCommand()` để kiểm tra và xử lý toàn bộ giao dịch trên bản sao, sau đó mới lưu nếu thành công. REST gửi command tới backend, nơi phải thực thi cùng quy tắc trong transaction. Không lưu state kho trực tiếp từ component.
 
-## Kết nối REST sau
+## Kết nối REST
 
-Sao chép `.env.example` thành `.env.local`, đặt `VITE_DATA_SOURCE=rest` và `VITE_API_BASE_URL`. Adapter hiện dùng hợp đồng **đề xuất**, chưa được xác nhận bởi backend. Nếu backend có endpoint/DTO khác, sửa `RestInventoryRepository` và `mapDatabase`, không sửa domain hoặc trang. Xem [docs/API.md](docs/API.md).
+Sao chép `.env.example` thành `.env.local`, đặt `VITE_DATA_SOURCE=rest` và `VITE_API_BASE_URL=https://trinh-ca-phe-api.onrender.com/api` hoặc URL backend khác. Đăng nhập bằng tài khoản đã có trong backend. Adapter gọi API nghiệp vụ thật bằng Bearer token; Render cần thêm origin frontend vào `CORS_ORIGIN`. Xem [docs/API.md](docs/API.md).
 
 ## Phạm vi bàn giao và lưu ý
 
-Đây là frontend hoạt động với mock và các use case chính, chưa phải hệ thống vận hành production. Dữ liệu và định lượng mẫu không đại diện định mức thật. Chưa có API lịch sử tồn kho, phân trang server, khôi phục mật khẩu thật hay kiểm thử đối chiếu pixel tự động. Snapshot mock chỉ có từ ngày khởi tạo/theo dõi, không dựng số dư cho lịch sử chưa tồn tại. Giao diện được thích ứng mobile vì nguồn tham chiếu là desktop. Nguyên vật liệu/công thức dùng dialog; phiếu kho, kiểm kê và phê duyệt dùng trang chi tiết theo Figma.
+Đây là frontend có mock và REST adapter, chưa phải hệ thống vận hành production. Dữ liệu và định lượng mẫu không đại diện định mức thật. Phân trang server, khôi phục mật khẩu thật và kiểm thử đối chiếu pixel chưa hoàn thiện. Giao diện được thích ứng mobile vì nguồn tham chiếu là desktop. Nguyên vật liệu/công thức dùng dialog; phiếu kho, kiểm kê và phê duyệt dùng trang chi tiết theo Figma.
 
 Các lỗi/mâu thuẫn nghiệp vụ của báo cáo và giả định của bản demo đã ghi trong [docs/BUSINESS.md](docs/BUSINESS.md). Chi tiết kiểm tra cuối cùng nằm ở [docs/VALIDATION.md](docs/VALIDATION.md).

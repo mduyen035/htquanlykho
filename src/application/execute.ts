@@ -538,24 +538,6 @@ export function executeCommand(source: Database, command: Command, user: User): 
         previous.length === 0 || command.replaceOverlapping,
         'Kỳ đã có dữ liệu hoặc chồng lấn tháng/quý. Cần xác nhận ghi đè trước khi lưu.',
       );
-      const ids = new Set([
-        ...consumption.keys(),
-        ...previous.flatMap((s) => s.consumption.map((l) => l.materialId)),
-      ]);
-      for (const id of ids) {
-        const old = previous.reduce(
-          (sum, s) => sum + (s.consumption.find((l) => l.materialId === id)?.quantity ?? 0),
-          0,
-        );
-        const delta = (consumption.get(id) ?? 0) - old;
-        const st = stock(db, s.branchId, id);
-        assert(
-          st.quantity - delta >= 0,
-          'Tiêu hao lý thuyết vượt số dư tồn kho. Kiểm tra dữ liệu và công thức.',
-        );
-        st.quantity -= delta;
-        st.outbound += delta;
-      }
       db.sales = db.sales.filter(
         (x) => !(x.branchId === s.branchId && periodsOverlap(x.period, s.period)),
       );

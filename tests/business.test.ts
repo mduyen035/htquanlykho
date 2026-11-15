@@ -204,7 +204,7 @@ describe('Count, sales and reports', () => {
     );
     expect(stockOf(approved, 'hc', 'NVL-001')).toBe(39);
   });
-  it('overwrites a sales period and recalculates only the consumption difference', () => {
+  it('overwrites theoretical consumption without changing physical stock', () => {
     const db = seed();
     const sales = {
       id: 'NEW-SALES',
@@ -224,7 +224,10 @@ describe('Count, sales and reports', () => {
       1,
     );
     expect(stockOf(second, 'hc', 'NVL-002')).toBe(stockOf(first, 'hc', 'NVL-002'));
-    expect(stockOf(first, 'hc', 'NVL-002')).toBeCloseTo(31.6);
+    expect(stockOf(first, 'hc', 'NVL-002')).toBe(stockOf(db, 'hc', 'NVL-002'));
+    expect(
+      first.sales[0].consumption.find((i) => i.materialId === 'NVL-002')?.quantity,
+    ).toBeCloseTo(0.4);
     const changed = executeCommand(
       second,
       {
@@ -234,7 +237,10 @@ describe('Count, sales and reports', () => {
       },
       manager,
     );
-    expect(stockOf(changed, 'hc', 'NVL-002')).toBeCloseTo(31.8);
+    expect(stockOf(changed, 'hc', 'NVL-002')).toBe(stockOf(db, 'hc', 'NVL-002'));
+    expect(
+      changed.sales[0].consumption.find((i) => i.materialId === 'NVL-002')?.quantity,
+    ).toBeCloseTo(0.2);
   });
   it('classifies loss independently of the inventory minimum', () => {
     expect(loss(32, 30, 0.6).classification).toBe('Vượt mức');
@@ -290,13 +296,13 @@ describe('SDD corrections', () => {
     expect(replaced.sales.filter((s) => s.branchId === 'hc').map((s) => s.period)).toEqual([
       '2026-Q4',
     ]);
-    expect(stockOf(replaced, 'hc', 'NVL-002')).toBeCloseTo(32.9);
+    expect(stockOf(replaced, 'hc', 'NVL-002')).toBe(stockOf(db, 'hc', 'NVL-002'));
     const again = executeCommand(
       replaced,
       { type: 'sales', sales: quarter, replaceOverlapping: true },
       manager,
     );
-    expect(stockOf(again, 'hc', 'NVL-002')).toBeCloseTo(32.9);
+    expect(stockOf(again, 'hc', 'NVL-002')).toBe(stockOf(db, 'hc', 'NVL-002'));
   });
   it('requires an integer minimum and a recorded reason before material deletion', () => {
     const db = seed();

@@ -1,78 +1,34 @@
-# Hợp đồng REST đề xuất
+# Kết nối backend Trình Cà Phê
 
-Chưa có OpenAPI hay server thật được cung cấp. Các đường dẫn dưới đây là điểm nối của adapter mẫu, **không khẳng định là endpoint đang tồn tại**.
+Frontend dùng các endpoint nghiệp vụ của [`trinh-ca-phe-backend`](https://github.com/mduyen035/trinh-ca-phe-backend). Adapter tại `src/infrastructure/rest-adapter.ts` ghép dữ liệu API vào mô hình hiển thị và chuyển từng thao tác giao diện thành lệnh API tương ứng.
 
 ## Cấu hình
 
 ```dotenv
 VITE_DATA_SOURCE=rest
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=https://trinh-ca-phe-api.onrender.com/api
 ```
 
-Frontend dùng `fetch` với `credentials: include`. Backend cần cấu hình CORS cho origin frontend và cookie session phù hợp. Không đặt khóa bí mật vào biến `VITE_*`. Backend chịu trách nhiệm xác thực, quyền, chi nhánh và chống CSRF theo cơ chế session đã chọn. Tài khoản demo chỉ có hiệu lực trong mock.
+Không đưa `DATABASE_URL`, mật khẩu hoặc `JWT_SECRET` vào biến `VITE_*`. Backend phải thêm origin chính xác của frontend vào `CORS_ORIGIN` trên Render. Khi chạy local, mặc định API ở `http://127.0.0.1:4000/api`.
 
-## Auth
+## Xác thực
 
-| Method | Path           | Request               | Response                       |
-| ------ | -------------- | --------------------- | ------------------------------ |
-| POST   | `/auth/login`  | `{username,password}` | `{id,name,role,branchId}`      |
-| POST   | `/auth/logout` | Không có              | JSON object, ví dụ `{ok:true}` |
+`POST /auth/login` trả `{token,user}`. Frontend giữ token trong `sessionStorage` và gửi `Authorization: Bearer <token>`; tải lại trang sẽ kiểm tra `GET /auth/me`. `POST /auth/logout` có thể trả HTTP 204. Vai trò backend `chucuahang`, `quanly`, `nhanvien` được ánh xạ thành `owner`, `manager`, `staff` cho giao diện. Tài khoản demo mock không dùng để đăng nhập REST nếu chưa tồn tại ở backend.
 
-`role`: `owner`, `manager`, `staff`. Adapter hiện không khôi phục session REST sau khi tải lại trang; bổ sung `GET /auth/me` theo contract backend sau này. Sai thông tin hoặc lỗi API được hiển thị cho người dùng.
+## Nguồn dữ liệu theo màn hình
 
-## Snapshot và command
+| Giao diện                  | API                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| Danh mục, tồn và công thức | `/branches`, `/materials`, `/suppliers`, `/recipes`, `/recipes/:id/versions/:versionId` |
+| Phiếu kho                  | `/imports`, `/imports/:id`, `/exports`, `/exports/:id`                                  |
+| Kiểm kê, duyệt             | `/stocktakes`, `/stocktakes/:id`, `/approvals`                                          |
+| POS                        | `/sales-imports`, `/sales-imports/:id`                                                  |
+| Báo cáo                    | `/reports/inventory`, `/reports/loss`                                                   |
 
-| Method | Path                  | Mô tả                                       |
-| ------ | --------------------- | ------------------------------------------- |
-| GET    | `/inventory/snapshot` | Snapshot domain JSON trong phạm vi được cấp |
-| POST   | `/inventory/commands` | Command JSON; trả snapshot sau giao dịch    |
+Thao tác tạo/sửa/xóa/ghi nhận/duyệt gọi endpoint tương ứng của từng nhóm. Server sinh mã phiếu, kiểm tra quyền và tồn; frontend chỉ truyền ID và dữ liệu nhập. Nhận hàng gửi `idempotencyKey` mới cho từng đợt. POS dùng `YYYY-MM` hoặc `YYYY-Q1`…`YYYY-Q4`, xác nhận `overwrite` khi các kỳ chồng lấn. POS chỉ lưu tiêu hao lý thuyết và không trừ tồn vật lý.
 
-Response snapshot theo `Database` trong `src/domain/model.ts`. `mapDatabase` dùng Zod để kiểm tra kiểu và số hợp lệ, bỏ các trường ngoài schema. Thiếu collection/trường cần thiết sẽ chuyển sang trạng thái lỗi có nút thử lại. Khi backend trả DTO snake_case/envelope, chuyển đổi tại mapper trước khi parse.
+Phiếu kiểm kê được tạo trên server khi mở form để chụp số tồn. Nhân viên không nhận số hệ thống; quản lý xử lý nguyên nhân và biện pháp trên API `/stocktakes/:id/handling`, sau đó tạo đề xuất điều chỉnh.
 
-`POST /inventory/commands` gửi header `Idempotency-Key` (UUID). Backend phải lưu và thực thi khóa này để tránh lặp giao dịch khi retry. Frontend chỉ gửi lệnh, không gửi danh tính/quyền actor để server tin cậy. Server lấy actor từ session.
+## Giới hạn hiện tại
 
-Ví dụ tạo phiếu:
-
-```json
-{
-  "type": "saveMovement",
-  "editing": false,
-  "movement": {
-    "id": "PNK-client-generated-id",
-    "kind": "inbound",
-    "branchId": "hc",
-    "supplier": "Cà phê Tây Nguyên",
-    "type": "internal",
-    "reason": "",
-    "note": "Bổ sung nguyên liệu tuần mới",
-    "date": "2026-11-10T08:00:00.000Z",
-    "expectedDate": "2026-11-12",
-    "creator": "Thông tin hiển thị, server phải thay thế",
-    "status": "pending",
-    "lines": [{ "materialId": "NVL-001", "quantity": 25 }]
-  }
-}
-```
-
-Các command union được khai báo đầy đủ tại `src/application/ports.ts`:
-
-- `saveMaterial`, `saveRecipe`: `operation=create|update|delete`, xóa bắt buộc `reason` không rỗng. Actor quản lý tạo đề xuất chờ duyệt; actor Chủ cửa hàng áp dụng trực tiếp và lưu lịch sử hoàn tất. Backend phải lấy vai trò từ session, không tin actor phía client.
-- `saveMovement`, `deleteMovement`: server kiểm tra trạng thái, quyền và số dư.
-- `recordMovement`: `id`, `lines`, `note`, `outcome`, `incidentReason`. Nhập kho: `received` là **số nhận thêm của đợt này**, `defective` là số lỗi trong đợt. Số đạt = received − defective. Xuất kho: received đại diện số thực xuất; `outcome=incident` bắt buộc lý do, không dùng cột hàng lỗi của nhập kho.
-- `decide`: `id`, `approve`, `reason`; chỉ owner, trạng thái pending, lý do bắt buộc khi từ chối.
-- `beginCount`: `{id,branchId}` tạo draft và đóng băng tồn lý thuyết ngay lúc bắt đầu. Server giữ snapshot này, chỉ trả những trường được phép theo vai trò.
-- `count`: gửi `draftId` và số thực tế; lấy số lý thuyết từ draft, không tin giá trị client. Nhân viên gửi xong chuyển `pendingHandling`, không tự tạo đề xuất thiếu lý do.
-- `handleCount`: quản lý/chủ cửa hàng gửi `{id,lines:[{materialId,reason,remedy}]}`; yêu cầu giải trình từng dòng chênh lệch, sau đó mới tạo đề xuất điều chỉnh.
-- `sales`: `period` nhận `YYYY-MM` hoặc `YYYY-Q1`…`YYYY-Q4`; `replaceOverlapping=true` chỉ sau xác nhận. Thay thế atomically các kỳ chồng nhau cùng chi nhánh, hoàn tiêu hao cũ rồi áp dụng tiêu hao mới. Lưu `missingRecipeIds` và chỉ tính món có công thức.
-
-Snapshot bổ sung tùy chọn `countDrafts`, `stockSnapshots`, ảnh trước thay đổi `beforeMaterial`/`beforeRecipe` của đề xuất. Schema vẫn đọc dữ liệu mock cũ; không tự xóa dữ liệu người dùng. Backend phải cung cấp snapshot theo ngày từ sổ kho và lược bỏ tồn lý thuyết/chênh lệch khỏi mọi payload dành cho nhân viên. Frontend mock giữ dữ liệu trong trình duyệt nên không thay thế bảo mật API.
-
-Backend nên trả lỗi `{message: string}` với HTTP status thích hợp. Lỗi HTTP/mạng/schema đều hiển thị rõ, không tự động chuyển sang mock.
-
-## Trước khi vận hành thật
-
-1. Thống nhất OpenAPI, DTO, đơn vị đo, quy tắc kỳ và timezone chi nhánh.
-2. Thay snapshot bằng query theo tính năng và phân trang nếu dữ liệu lớn; không trả dữ liệu ngoài quyền, đặc biệt tồn lý thuyết cho nhân viên.
-3. Thực hiện transaction, khóa cạnh tranh/optimistic concurrency, idempotency, ID phía server, audit và versioning.
-4. Chốt nghiệp vụ điều chuyển hai đầu và các trường hợp ghi đè dữ liệu kỳ đã kiểm kê/đã điều chỉnh.
-5. Kiểm thử contract/integration với server thật. Hệ thống chưa được kiểm thử với backend nào ở bản bàn giao này.
+Các danh sách backend chưa có phân trang server; adapter tải chi tiết từng phiếu để giữ nguyên màn hình hiện tại. Báo cáo tồn theo ngày gọi `/reports/inventory?at=...&from=...` và lấy số liệu từ sổ biến động. Mức tối thiểu của giao diện là một giá trị cho nguyên vật liệu, trong khi backend lưu theo chi nhánh; adapter hiển thị mức của chi nhánh đang đăng nhập và khi sửa áp dụng mức đó cho các chi nhánh mà tài khoản quản lý được. Lịch sử audit riêng chưa được API công khai.

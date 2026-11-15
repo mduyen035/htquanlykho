@@ -10,7 +10,7 @@ export function lossReport(
   if (user.role === 'staff') return [];
   const latest = new Map<
     string,
-    Database['counts'][number]['lines'][number] & { branchId: string }
+    Database['counts'][number]['lines'][number] & { branchId: string; countSalesVersion?: string }
   >();
   for (const count of [...db.counts].sort((a, b) => a.date.localeCompare(b.date))) {
     if (
@@ -30,16 +30,26 @@ export function lossReport(
       continue;
     for (const line of count.lines)
       if (materialId === 'all' || line.materialId === materialId)
-        latest.set(`${count.branchId}:${line.materialId}`, { ...line, branchId: count.branchId });
+        latest.set(`${count.branchId}:${line.materialId}`, {
+          ...line,
+          branchId: count.branchId,
+          countSalesVersion: count.salesVersion,
+        });
   }
   return [...latest.values()].map((line) => {
     const m = db.materials.find((m) => m.id === line.materialId)!;
+    const sale = db.sales.find((s) => s.id === line.countSalesVersion);
+    const theoretical =
+      line.theoretical -
+      (sale?.consumption.find((i) => i.materialId === line.materialId)?.quantity || 0);
     return {
       ...line,
+      countSalesVersion: undefined,
+      theoretical,
       name: m.name,
       unit: m.unit,
       allowance: m.allowance,
-      ...loss(line.theoretical, line.actual, m.allowance),
+      ...loss(theoretical, line.actual, m.allowance),
     };
   });
 }

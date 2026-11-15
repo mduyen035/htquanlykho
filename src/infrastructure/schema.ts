@@ -128,7 +128,7 @@ export const databaseSchema = z.object({
         z.object({
           materialId: z.string(),
           actual: nn,
-          theoretical: nn,
+          theoretical: n,
           reason: z.string().optional(),
           remedy: z.string().optional(),
         }),

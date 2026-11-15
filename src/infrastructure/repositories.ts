@@ -3,7 +3,9 @@ import { executeCommand } from '../application/execute';
 import type { Database, User } from '../domain/model';
 import { seed } from './seed';
 import { mapDatabase } from './schema';
+import { BackendInventoryAdapter } from './rest-adapter';
 export const STORAGE_KEY = 'trinh-inventory-v1';
+export const TOKEN_KEY = 'trinh-api-token';
 export class MockInventoryRepository implements InventoryRepository {
   async load(): Promise<Database> {
     await new Promise((r) => setTimeout(r, 180));
@@ -29,37 +31,39 @@ export class MockInventoryRepository implements InventoryRepository {
 export class HttpClient {
   constructor(private baseUrl: string) {}
   async request(path: string, init: RequestInit = {}): Promise<unknown> {
+    const token = sessionStorage.getItem(TOKEN_KEY);
     const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, {
-      credentials: 'include',
       ...init,
-      headers: { 'Content-Type': 'application/json', ...init.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init.headers,
+      },
     });
     if (!response.ok) {
       let message = `API trả về lỗi ${response.status}`;
       try {
         const body = await response.json();
-        if (typeof body.message === 'string') message = body.message;
+        if (typeof body.error === 'string') message = body.error;
+        else if (typeof body.message === 'string') message = body.message;
       } catch {
         /* Preserve safe status fallback. */
       }
       throw new Error(message);
     }
-    return response.json();
+    return response.status === 204 ? null : response.json();
   }
 }
 export class RestInventoryRepository implements InventoryRepository {
-  constructor(private http: HttpClient) {}
-  async load(signal?: AbortSignal) {
-    return mapDatabase(await this.http.request('/inventory/snapshot', { signal }));
+  private adapter: BackendInventoryAdapter;
+  constructor(http: HttpClient) {
+    this.adapter = new BackendInventoryAdapter(http);
   }
-  async execute(command: Command, _actor: User) {
-    // Actor identity MUST come from the server session.
-    return mapDatabase(
-      await this.http.request('/inventory/commands', {
-        method: 'POST',
-        body: JSON.stringify(command),
-        headers: { 'Idempotency-Key': crypto.randomUUID() },
-      }),
-    );
+  async load(signal?: AbortSignal) {
+    return mapDatabase(await this.adapter.load(signal));
+  }
+  async execute(command: Command, actor: User) {
+    await this.adapter.execute(command, actor);
+    return this.load();
   }
 }
