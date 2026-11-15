@@ -43,13 +43,7 @@ export function Layout() {
   }, [pathname, search]);
   const [mobile, setMobile] = useState(false);
   const [warehouse, setWarehouse] = useState(true);
-  const [approval, setApproval] = useState(
-    !['/', '/stock-report', '/loss-report'].includes(pathname),
-  );
-  useEffect(
-    () => setApproval(!['/', '/counts', '/stock-report', '/loss-report'].includes(pathname)),
-    [pathname],
-  );
+  const [approval, setApproval] = useState(true);
   const link = (path: string, name: string, sub = false) => (
     <NavLink
       end

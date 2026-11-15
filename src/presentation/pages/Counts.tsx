@@ -117,7 +117,7 @@ export function Counts() {
               <td>
                 <Badge
                   status={pending ? 'receiving' : 'completed'}
-                  text={pending ? '◷ Chờ xử lý' : '✓ Đã ghi nhận'}
+                  text={pending ? 'Chờ xử lý' : 'Đã ghi nhận'}
                 />
               </td>
               <td>{c.note}</td>
