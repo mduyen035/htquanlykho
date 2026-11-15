@@ -115,6 +115,7 @@ export class BackendInventoryAdapter {
         id: r.code,
         name: r.name,
         category: r.category,
+        size: r.size || undefined,
         version: number(current?.versionNo),
         note: r.note || '',
         active: r.status === 'active',
@@ -322,6 +323,34 @@ export class BackendInventoryAdapter {
               ? materialCode(a.referenceId)
               : stocktakes.find((x) => x.id === a.referenceId)?.code || a.referenceId;
       const count = counts.find((c) => c.id === targetId);
+      const currentMaterial = materialView.find((m) => m.id === targetId);
+      const currentRecipe = recipeView.find((r) => r.id === targetId);
+      const details = a.details || {};
+      const proposedVersion = details.versionId ? versionDetails.get(details.versionId) : undefined;
+      const proposedRecipe = currentRecipe && kind === 'recipe'
+        ? {
+            ...currentRecipe,
+            name: details.name || currentRecipe.name,
+            category: details.category || currentRecipe.category,
+            note: details.note || proposedVersion?.note || currentRecipe.note,
+            lines: proposedVersion
+              ? (proposedVersion.ingredients || []).map((ingredient: Row) => ({
+                  materialId: materialCode(ingredient.materialId),
+                  quantity: number(ingredient.quantity),
+                }))
+              : currentRecipe.lines,
+          }
+        : undefined;
+      const proposedMaterial = currentMaterial && kind === 'material'
+        ? {
+            ...currentMaterial,
+            name: details.name || currentMaterial.name,
+            unit: details.unit || currentMaterial.unit,
+            minimum: details.minimumQuantity == null
+              ? currentMaterial.minimum
+              : number(details.minimumQuantity),
+          }
+        : undefined;
       return {
         id: a.id,
         kind,
@@ -336,8 +365,10 @@ export class BackendInventoryAdapter {
         decisionReason: a.reviewNote || undefined,
         decidedBy: a.reviewedBy ? userName(a.reviewedBy) : undefined,
         decidedAt: a.reviewedAt ? iso(a.reviewedAt) : undefined,
-        material: kind === 'material' ? materialView.find((m) => m.id === targetId) : undefined,
-        recipe: kind === 'recipe' ? recipeView.find((r) => r.id === targetId) : undefined,
+        material: proposedMaterial,
+        beforeMaterial: currentMaterial,
+        recipe: proposedRecipe,
+        beforeRecipe: currentRecipe,
         adjustments:
           kind === 'adjustment'
             ? count?.lines

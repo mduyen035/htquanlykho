@@ -306,7 +306,7 @@ export function seed(): Database {
       lines: [{ recipeId: 'MON-001', quantity: 100 }],
       consumption: [
         { materialId: 'NVL-002', quantity: 1.5 },
-        { materialId: 'NVL-005', quantity: 10 },
+        { materialId: 'NVL-005', quantity: 5 },
       ],
     })),
     audit: [],
