@@ -250,8 +250,10 @@ export function Dialog({
           className={title === 'Thông báo' ? 'close close-text' : 'close'}
           onClick={onClose}
           aria-label="Đóng"
+          // aria-label="Đóng"
         >
-          {title === 'Thông báo' ? 'Đóng' : '×'}
+          {/* {title === 'Thông báo' ? 'Đóng' : '×'} */}
+          {title === 'Thông báo' ? 'x' : 'x'}
         </button>
       </div>
       {children}
@@ -330,7 +332,11 @@ export function Confirm({
           onConfirm(reason);
         }}
       >
-        {title !== 'Thông báo' && <p><strong>{title}</strong></p>}
+        {title !== 'Thông báo' && (
+          <p>
+            <strong>{title}</strong>
+          </p>
+        )}
         <p>{message}</p>
         {reasonRequired && (
           <Field label={reasonLabel}>

@@ -112,8 +112,7 @@ export function Counts() {
               <td>{dateFmt(c.date)}</td>
               <td>{c.creator}</td>
               <td>
-                {c.lines.filter((l) => Math.abs(l.actual - l.theoretical) >= 1e-6).length} mặt
-                hàng
+                {c.lines.filter((l) => Math.abs(l.actual - l.theoretical) >= 1e-6).length} mặt hàng
               </td>
               <td>
                 <Badge
@@ -158,14 +157,7 @@ function CountDetail({ count: c, onClose }: { count: Count; onClose: () => void 
       </Panel>
       <Panel title="Thông tin kiểm kê">
         <Table
-          headers={[
-            'Mã NVL',
-            'Nguyên vật liệu',
-            'Đơn vị',
-            'Tồn hệ thống',
-            'Thực tế',
-            'Chênh lệch',
-          ]}
+          headers={['Mã NVL', 'Nguyên vật liệu', 'Đơn vị', 'Tồn hệ thống', 'Thực tế', 'Chênh lệch']}
         >
           {c.lines.map((l) => (
             <tr key={l.materialId}>
@@ -180,52 +172,52 @@ function CountDetail({ count: c, onClose }: { count: Count; onClose: () => void 
         </Table>
       </Panel>
       {changed.map((l) => (
-          <Panel key={l.materialId} title={`Thông tin xử lý chênh lệch ${l.materialId}`}>
-            {!staff && c.handlingStatus === 'pendingHandling' ? (
-              <div className="form-grid">
-                <Field label={`Nguyên nhân ${l.materialId} *`}>
-                  <input
-                    value={handling[l.materialId]?.reason || ''}
-                    onChange={(e) =>
-                      setHandling((v) => ({
-                        ...v,
-                        [l.materialId]: {
-                          remedy: v[l.materialId]?.remedy || '',
-                          reason: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Field>
-                <Field label={`Biện pháp xử lý ${l.materialId} *`}>
-                  <input
-                    value={handling[l.materialId]?.remedy || ''}
-                    onChange={(e) =>
-                      setHandling((v) => ({
-                        ...v,
-                        [l.materialId]: {
-                          reason: v[l.materialId]?.reason || '',
-                          remedy: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Field>
-              </div>
-            ) : (
-              <Facts
-                columns={5}
-                items={[
-                  ['Nguyên nhân', l.reason || c.reason],
-                  ['Biện pháp xử lý', l.remedy || c.remedy],
-                  ['Người đề xuất', pending?.creator || '—'],
-                  ['Người phê duyệt', pending?.decidedBy || '—'],
-                  ['Trạng thái xử lý', pending ? <Badge status={pending.status} /> : 'Đã ghi nhận'],
-                ]}
-              />
-            )}
-          </Panel>
-        ))}
+        <Panel key={l.materialId} title={`Thông tin xử lý chênh lệch ${l.materialId}`}>
+          {!staff && c.handlingStatus === 'pendingHandling' ? (
+            <div className="form-grid">
+              <Field label={`Nguyên nhân ${l.materialId} *`}>
+                <input
+                  value={handling[l.materialId]?.reason || ''}
+                  onChange={(e) =>
+                    setHandling((v) => ({
+                      ...v,
+                      [l.materialId]: {
+                        remedy: v[l.materialId]?.remedy || '',
+                        reason: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </Field>
+              <Field label={`Biện pháp xử lý ${l.materialId} *`}>
+                <input
+                  value={handling[l.materialId]?.remedy || ''}
+                  onChange={(e) =>
+                    setHandling((v) => ({
+                      ...v,
+                      [l.materialId]: {
+                        reason: v[l.materialId]?.reason || '',
+                        remedy: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </Field>
+            </div>
+          ) : (
+            <Facts
+              columns={5}
+              items={[
+                ['Nguyên nhân', l.reason || c.reason],
+                ['Biện pháp xử lý', l.remedy || c.remedy],
+                ['Người đề xuất', pending?.creator || '—'],
+                ['Người phê duyệt', pending?.decidedBy || '—'],
+                ['Trạng thái xử lý', pending ? <Badge status={pending.status} /> : 'Đã ghi nhận'],
+              ]}
+            />
+          )}
+        </Panel>
+      ))}
       {!staff && c.handlingStatus === 'pendingHandling' && (
         <div className="form-actions">
           <button
@@ -341,7 +333,11 @@ function CountForm({
         <Panel title="Thông tin chung">
           <div className="form-grid three">
             <Field label="Chi nhánh *">
-              <BranchSelect value={draft.branchId} all={false} onChange={(v) => void changeBranch(v)} />
+              <BranchSelect
+                value={draft.branchId}
+                all={false}
+                onChange={(v) => void changeBranch(v)}
+              />
             </Field>
             <Field label="Loại kiểm kê *">
               <Select value={kind} onChange={(e) => setKind(e.target.value)}>
@@ -428,7 +424,8 @@ function CountForm({
       </form>
       {cancel && (
         <Confirm
-          title="Xác nhận hủy"
+          title=""
+          // title="Xác nhận hủy"
           message={cancelMessage}
           onClose={() => setCancel(false)}
           onConfirm={() => void discardDraft()}
