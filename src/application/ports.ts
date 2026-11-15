@@ -30,6 +30,7 @@ export type Command =
   | { type: 'decide'; id: string; approve: boolean; reason: string }
   | { type: 'count'; count: Database['counts'][number] }
   | { type: 'beginCount'; id: string; branchId: string }
+  | { type: 'cancelCount'; id: string }
   | {
       type: 'handleCount';
       id: string;

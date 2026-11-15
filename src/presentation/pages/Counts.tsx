@@ -83,7 +83,7 @@ export function Counts() {
           'Chi nhánh',
           'Ngày kiểm kê',
           'Người lập',
-          ...(role !== 'staff' ? ['Số chênh lệch'] : []),
+          'Số chênh lệch',
           'Trạng thái xử lý',
           'Ghi chú',
         ]}
@@ -110,16 +110,14 @@ export function Counts() {
               <td>{db!.branches.find((b) => b.id === c.branchId)?.name}</td>
               <td>{dateFmt(c.date)}</td>
               <td>{c.creator}</td>
-              {role !== 'staff' && (
-                <td>
-                  {c.lines.filter((l) => Math.abs(l.actual - l.theoretical) >= 1e-6).length} mặt
-                  hàng
-                </td>
-              )}
+              <td>
+                {c.lines.filter((l) => Math.abs(l.actual - l.theoretical) >= 1e-6).length} mặt
+                hàng
+              </td>
               <td>
                 <Badge
-                  status={role !== 'staff' && pending ? 'receiving' : 'completed'}
-                  text={role !== 'staff' && pending ? '◷ Chờ xử lý' : '✓ Đã ghi nhận'}
+                  status={pending ? 'receiving' : 'completed'}
+                  text={pending ? '◷ Chờ xử lý' : '✓ Đã ghi nhận'}
                 />
               </td>
               <td>{c.note}</td>
@@ -150,11 +148,9 @@ function CountDetail({ count: c, onClose }: { count: Count; onClose: () => void 
             ['Người lập phiếu', c.creator],
             [
               'Trạng thái phiếu',
-              staff
-                ? 'Đã ghi nhận'
-                : c.handlingStatus === 'pendingHandling' || pending?.status === 'pending'
-                  ? 'Chờ xử lý'
-                  : 'Đã ghi nhận',
+              c.handlingStatus === 'pendingHandling' || pending?.status === 'pending'
+                ? 'Chờ xử lý'
+                : 'Đã ghi nhận',
             ],
           ]}
         />
@@ -165,9 +161,9 @@ function CountDetail({ count: c, onClose }: { count: Count; onClose: () => void 
             'Mã NVL',
             'Nguyên vật liệu',
             'Đơn vị',
-            ...(!staff ? ['Tồn hệ thống'] : []),
+            'Tồn hệ thống',
             'Thực tế',
-            ...(!staff ? ['Chênh lệch'] : []),
+            'Chênh lệch',
           ]}
         >
           {c.lines.map((l) => (
@@ -175,17 +171,16 @@ function CountDetail({ count: c, onClose }: { count: Count; onClose: () => void 
               <td>{l.materialId}</td>
               <td>{db!.materials.find((m) => m.id === l.materialId)?.name}</td>
               <td>{db!.materials.find((m) => m.id === l.materialId)?.unit}</td>
-              {!staff && <td>{fmt(l.theoretical)}</td>}
+              <td>{fmt(l.theoretical)}</td>
               <td>{fmt(l.actual)}</td>
-              {!staff && <td>{fmt(l.actual - l.theoretical)}</td>}
+              <td>{fmt(l.actual - l.theoretical)}</td>
             </tr>
           ))}
         </Table>
       </Panel>
-      {!staff &&
-        changed.map((l) => (
+      {changed.map((l) => (
           <Panel key={l.materialId} title={`Thông tin xử lý chênh lệch ${l.materialId}`}>
-            {c.handlingStatus === 'pendingHandling' ? (
+            {!staff && c.handlingStatus === 'pendingHandling' ? (
               <div className="form-grid">
                 <Field label={`Nguyên nhân ${l.materialId} *`}>
                   <input
@@ -283,6 +278,13 @@ function CountForm({
     [handling, setHandling] = useState<Record<string, { reason: string; remedy: string }>>({}),
     [cancel, setCancel] = useState(false),
     [error, setError] = useState('');
+  async function discardDraft() {
+    if (await run({ type: 'cancelCount', id: draft.id }, '')) onClose();
+  }
+  async function changeBranch(branchId: string) {
+    if (branchId === draft.branchId) return;
+    if (await run({ type: 'cancelCount', id: draft.id }, '')) await onBranch(branchId);
+  }
   const changed = draft.lines.filter(
     (l) =>
       actuals[l.materialId] !== undefined &&
@@ -338,7 +340,7 @@ function CountForm({
         <Panel title="Thông tin chung">
           <div className="form-grid three">
             <Field label="Chi nhánh *">
-              <BranchSelect value={draft.branchId} all={false} onChange={(v) => void onBranch(v)} />
+              <BranchSelect value={draft.branchId} all={false} onChange={(v) => void changeBranch(v)} />
             </Field>
             <Field label="Loại kiểm kê *">
               <Select value={kind} onChange={(e) => setKind(e.target.value)}>
@@ -357,9 +359,9 @@ function CountForm({
               'Mã NVL',
               'Tên nguyên vật liệu',
               'Đơn vị',
-              ...(!staff ? ['Tồn hệ thống'] : []),
+              'Tồn hệ thống',
               'Thực tế *',
-              ...(!staff ? ['Chênh lệch'] : []),
+              'Chênh lệch',
             ]}
           >
             {draft.lines.map((l) => (
@@ -367,7 +369,7 @@ function CountForm({
                 <td>{l.materialId}</td>
                 <td>{db!.materials.find((m) => m.id === l.materialId)?.name}</td>
                 <td>{db!.materials.find((m) => m.id === l.materialId)?.unit}</td>
-                {!staff && <td>{fmt(l.theoretical)}</td>}
+                <td>{fmt(l.theoretical)}</td>
                 <td>
                   <input
                     aria-label={`Thực tế ${db!.materials.find((m) => m.id === l.materialId)?.name}`}
@@ -378,13 +380,11 @@ function CountForm({
                     onChange={(e) => setActuals((v) => ({ ...v, [l.materialId]: e.target.value }))}
                   />
                 </td>
-                {!staff && (
-                  <td>
-                    {actuals[l.materialId] !== undefined && actuals[l.materialId] !== ''
-                      ? fmt(Number(actuals[l.materialId]) - l.theoretical)
-                      : '—'}
-                  </td>
-                )}
+                <td>
+                  {actuals[l.materialId] !== undefined && actuals[l.materialId] !== ''
+                    ? fmt(Number(actuals[l.materialId]) - l.theoretical)
+                    : '—'}
+                </td>
               </tr>
             ))}
           </Table>
@@ -431,7 +431,7 @@ function CountForm({
           title="Xác nhận hủy"
           message={cancelMessage}
           onClose={() => setCancel(false)}
-          onConfirm={onClose}
+          onConfirm={() => void discardDraft()}
         />
       )}
     </Screen>

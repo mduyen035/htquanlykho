@@ -161,7 +161,8 @@ export class BackendInventoryAdapter {
               {
                 pending_approval: 'pending',
                 approved: 'receiving',
-                receiving: 'backorder',
+                receiving: 'receiving',
+                backorder: 'backorder',
                 cancelled: 'deleted',
               } as Record<string, Database['movements'][number]['status']>
             )[x.status] || x.status,
@@ -495,6 +496,11 @@ export class BackendInventoryAdapter {
           period: currentPeriod,
         });
         this.draftAliases.set(command.id, created.id);
+        break;
+      }
+      case 'cancelCount': {
+        await this.post(`/stocktakes/${this.countId(command.id)}/cancel`, {});
+        this.draftAliases.delete(command.id);
         break;
       }
       case 'count': {

@@ -399,6 +399,15 @@ export function executeCommand(source: Database, command: Command, user: User): 
       targetId = command.id;
       break;
     }
+    case 'cancelCount': {
+      const draft = db.countDrafts?.find((d) => d.id === command.id);
+      assert(draft, 'Không tìm thấy phiếu kiểm kê nháp.');
+      checkBranch(user, draft.branchId);
+      assert(draft.creatorId === user.id, 'Chỉ người tạo mới được hủy phiếu nháp.');
+      db.countDrafts = db.countDrafts!.filter((d) => d.id !== command.id);
+      targetId = command.id;
+      break;
+    }
     case 'count': {
       const c = command.count;
       checkBranch(user, c.branchId);

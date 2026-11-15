@@ -368,6 +368,18 @@ describe('SDD corrections', () => {
     expect(saved.counts[0].lines[0].theoretical).toBe(40);
     expect(stockOf(saved, 'hc', 'NVL-001')).toBe(35);
   });
+  it('discards an unfinished stocktake without changing stock', () => {
+    const original = seed();
+    const started = executeCommand(
+      original,
+      { type: 'beginCount', id: 'DRAFT-CANCEL', branchId: 'hc' },
+      staff,
+    );
+    expect(started.countDrafts?.some((d) => d.id === 'DRAFT-CANCEL')).toBe(true);
+    const cancelled = executeCommand(started, { type: 'cancelCount', id: 'DRAFT-CANCEL' }, staff);
+    expect(cancelled.countDrafts?.some((d) => d.id === 'DRAFT-CANCEL')).toBe(false);
+    expect(cancelled.stocks).toEqual(original.stocks);
+  });
   it('requires a reason for every discrepancy and blocks staff handling', () => {
     const db = seed();
     const count = {
