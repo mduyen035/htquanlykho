@@ -318,7 +318,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
       >
         {error && (
           <p role="alert" className="inline-error">
-            ✕ {error}
+            {error}
           </p>
         )}
         <div className="form-grid">

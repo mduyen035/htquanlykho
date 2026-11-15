@@ -142,23 +142,6 @@ export function Badge({ status, text }: { status?: Status; text?: string }) {
 export function EmptyState({ subject = '' }: { subject?: string }) {
   return (
     <span className="empty-state" role="status">
-      <svg
-        className="empty-search-icon"
-        width="48"
-        height="48"
-        viewBox="0 0 48 48"
-        fill="none"
-        aria-label="Không có kết quả tìm kiếm"
-        role="img"
-      >
-        <circle cx="20" cy="20" r="13" stroke="currentColor" strokeWidth="2" />
-        <path
-          d="m30 30 11 11M16 16l8 8m0-8-8 8"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
       <span>Không tìm thấy dữ liệu{subject ? ` ${subject}` : ''} phù hợp.</span>
     </span>
   );
@@ -231,8 +214,13 @@ export function Dialog({
     >
       <div className="dialog-heading">
         <h2 id={titleId}>{title}</h2>
-        <button type="button" className="close" onClick={onClose} aria-label="Đóng">
-          ×
+        <button
+          type="button"
+          className={title === 'Thông báo' ? 'close close-text' : 'close'}
+          onClick={onClose}
+          aria-label="Đóng"
+        >
+          {title === 'Thông báo' ? 'Đóng' : '×'}
         </button>
       </div>
       {children}

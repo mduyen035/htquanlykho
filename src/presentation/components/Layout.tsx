@@ -195,7 +195,7 @@ export function Layout() {
         <div role="status" className={`toast ${notice.startsWith('Lỗi:') ? 'error-toast' : ''}`}>
           {notice}
           <button aria-label="Đóng thông báo" onClick={() => notify('')}>
-            ✓
+            Đóng
           </button>
         </div>
       )}

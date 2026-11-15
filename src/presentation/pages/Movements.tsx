@@ -385,7 +385,7 @@ function MovementForm({
       >
         {error && (
           <p className="inline-error" role="alert">
-            ✕ {error}
+            {error}
           </p>
         )}
         <Panel title="Thông tin chung">
@@ -621,7 +621,7 @@ function RecordForm({ movement: m, onClose }: { movement: Movement; onClose: () 
       >
         {error && (
           <p role="alert" className="inline-error">
-            ✕ {error}
+            {error}
           </p>
         )}
         <MovementFacts movement={m} readOnly={inbound} />

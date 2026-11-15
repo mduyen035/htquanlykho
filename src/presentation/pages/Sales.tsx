@@ -107,7 +107,7 @@ export function SalesPage() {
     <div className="sales-page">
       <Heading title="Dữ liệu bán hàng" />
       <div className="sales-steps">
-        <span>{preview ? '✓ ' : ''}Chọn kỳ và tải dữ liệu</span>
+        <span>Chọn kỳ và tải dữ liệu</span>
         {preview && (
           <>
             <span aria-hidden>→</span>
@@ -165,7 +165,7 @@ export function SalesPage() {
           <Panel title="Đính kèm dữ liệu bán hàng">
             {error && (
               <p className="inline-error" role="alert">
-                ✕ Định dạng dữ liệu không hợp lệ. Vui lòng kiểm tra và nhập lại!
+                Định dạng dữ liệu không hợp lệ. Vui lòng kiểm tra và nhập lại!
               </p>
             )}
             {file ? (
@@ -250,7 +250,7 @@ export function SalesPage() {
           </Panel>
           {!!result.missing.length && (
             <p role="alert" className="inline-error">
-              ✕ Một số món bán ra chưa có công thức pha chế trong hệ thống. Vui lòng kiểm tra danh
+              Một số món bán ra chưa có công thức pha chế trong hệ thống. Vui lòng kiểm tra danh
               sách món được đánh dấu để bổ sung công thức!
             </p>
           )}
@@ -269,8 +269,8 @@ export function SalesPage() {
                         status={result.missing.includes(l.recipeId) ? 'rejected' : 'completed'}
                         text={
                           result.missing.includes(l.recipeId)
-                            ? '! Thiếu công thức'
-                            : '✓ Đang áp dụng'
+                            ? 'Thiếu công thức'
+                            : 'Đang áp dụng'
                         }
                       />
                     </td>

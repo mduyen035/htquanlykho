@@ -207,7 +207,7 @@ function RecipeForm({ recipe, onClose }: { recipe: Recipe; onClose: () => void }
       >
         {(error || r.lines.some((l) => !Number.isFinite(l.quantity) || l.quantity <= 0)) && (
           <p role="alert" className="inline-error">
-            ✕ {error || 'Thông tin nhập vào không hợp lệ. Vui lòng kiểm tra và thử lại!'}
+            {error || 'Thông tin nhập vào không hợp lệ. Vui lòng kiểm tra và thử lại!'}
           </p>
         )}
         <Panel title="Thông tin món">

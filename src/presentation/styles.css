@@ -533,6 +533,10 @@ dialog::backdrop {
   padding: 0;
   color: var(--secondary);
 }
+.close-text {
+  font-size: 14px;
+  padding: 0 8px;
+}
 .details-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -334,7 +334,7 @@ function CountForm({
       >
         {error && (
           <p role="alert" className="inline-error">
-            ✕ {error}
+            {error}
           </p>
         )}
         <Panel title="Thông tin chung">

@@ -36,7 +36,7 @@ export function Login() {
         >
           {error && (
             <p className="login-error-summary" role="alert">
-              ✕ {error}
+              {error}
             </p>
           )}
           <Field label="Tên đăng nhập">
@@ -60,7 +60,6 @@ export function Login() {
           </Field>
           {error && (
             <small className="field-error login-error-hint">
-              ⚠{' '}
               {error === 'Hãy nhập đầy đủ thông tin!'
                 ? 'Kiểm tra lại thông tin đăng nhập.'
                 : 'Vui lòng thử lại!'}
