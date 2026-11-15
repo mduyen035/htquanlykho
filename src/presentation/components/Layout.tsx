@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useApp } from '../../app/context';
 import { roles } from '../../domain/model';
@@ -44,6 +44,27 @@ export function Layout() {
   const [mobile, setMobile] = useState(false);
   const [warehouse, setWarehouse] = useState(true);
   const [approval, setApproval] = useState(true);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!accountOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) setAccountOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setAccountOpen(false);
+        avatarRef.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [accountOpen]);
   const link = (path: string, name: string, sub = false) => (
     <NavLink
       end
@@ -117,15 +138,6 @@ export function Layout() {
             </>
           )}
         </nav>
-        <div className="sidebar-footer">
-          <button
-            onClick={() => {
-              void logout();
-            }}
-          >
-            Đăng xuất
-          </button>
-        </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
@@ -163,15 +175,40 @@ export function Layout() {
               <strong>{user!.name}</strong>
               <small>{roles[user!.role]}</small>
             </span>
-            <span className="avatar">
-              {user!.role === 'staff'
-                ? user!.name
-                    .split(' ')
-                    .slice(-2)
-                    .map((w) => w[0])
-                    .join('')
-                : user!.name.split(' ')[0][0] + user!.name.split(' ').at(-1)![0]}
-            </span>
+            <div className="account-menu" ref={accountMenuRef}>
+              <button
+                ref={avatarRef}
+                type="button"
+                className="avatar"
+                aria-label="Mở menu cá nhân"
+                aria-expanded={accountOpen}
+                aria-controls="account-dropdown"
+                onClick={() => setAccountOpen((open) => !open)}
+              >
+                {user!.role === 'staff'
+                  ? user!.name
+                      .split(' ')
+                      .slice(-2)
+                      .map((w) => w[0])
+                      .join('')
+                  : user!.name.split(' ')[0][0] + user!.name.split(' ').at(-1)![0]}
+              </button>
+              {accountOpen && (
+                <div id="account-dropdown" className="account-dropdown">
+                  <strong>{user!.name}</strong>
+                  <small>{roles[user!.role]}</small>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountOpen(false);
+                      void logout();
+                    }}
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main id="main" tabIndex={-1}>

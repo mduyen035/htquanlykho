@@ -442,12 +442,6 @@ dialog {
 .sidebar nav {
   padding-top: 4px;
 }
-.sidebar-footer {
-  justify-content: flex-end;
-}
-.sidebar-footer button {
-  opacity: 0.8;
-}
 .toast {
   bottom: 24px;
   top: auto;
@@ -644,15 +638,6 @@ dialog {
   padding-top: clamp(3px, 0.7vh, 8px);
   padding-bottom: clamp(3px, 0.7vh, 8px);
   flex-shrink: 0;
-}
-.sidebar .sidebar-footer {
-  justify-content: center;
-  flex-shrink: 0;
-  padding-top: 10px;
-}
-.sidebar-footer button {
-  font-size: 13px;
-  min-height: 36px;
 }
 .empty-state {
   display: flex;
