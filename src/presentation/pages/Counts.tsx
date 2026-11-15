@@ -4,6 +4,7 @@ import type { Count, CountDraft } from '../../domain/model';
 import { newId } from '../../application/execute';
 import {
   Badge,
+  NonNegativeInput,
   BranchSelect,
   Confirm,
   Facts,
@@ -371,9 +372,8 @@ function CountForm({
                 <td>{db!.materials.find((m) => m.id === l.materialId)?.unit}</td>
                 <td>{fmt(l.theoretical)}</td>
                 <td>
-                  <input
+                  <NonNegativeInput
                     aria-label={`Thực tế ${db!.materials.find((m) => m.id === l.materialId)?.name}`}
-                    type="number"
                     step="any"
                     min="0"
                     value={actuals[l.materialId] ?? ''}

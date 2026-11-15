@@ -13,7 +13,7 @@ const titles: Record<string, string> = {
   '/loss-report': 'Báo cáo hao hụt',
   '/stock-report': 'Báo cáo tồn kho',
   '/approvals/adjustment': 'Phê duyệt › Điều chỉnh tồn kho',
-  '/approvals/movement': 'Phê duyệt › Kế hoạch xuất - nhập hàng',
+  '/approvals/movement': 'Phê duyệt › Kế hoạch xuất/Nhập hàng',
   '/approvals/recipe': 'Phê duyệt › Thay đổi công thức',
   '/approvals/material': 'Phê duyệt › Thay đổi nguyên vật liệu',
 };
@@ -29,7 +29,7 @@ export function Layout() {
         : `Tạo phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
     detail:
       pathname === '/materials'
-        ? 'Chi tiết nguyên vật liệu'
+        ? ' › Chi tiết nguyên vật liệu'
         : pathname === '/counts'
           ? 'Chi tiết phiếu kiểm kê'
           : pathname.startsWith('/approvals')

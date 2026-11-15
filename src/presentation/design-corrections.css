@@ -335,6 +335,28 @@ dialog {
 .stock-report .report-filters input {
   width: 220px;
 }
+.stock-report .report-date-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  white-space: nowrap;
+}
+.stock-report .report-date-field input {
+  width: 170px;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.stock-report .report-date-field:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
 .stock-report .report-filters select {
   width: 260px;
 }

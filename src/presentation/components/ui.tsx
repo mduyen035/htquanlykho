@@ -60,7 +60,8 @@ export function Field({ label, children }: { label: string; children: ReactNode 
     if (
       !['input', 'select', 'textarea'].includes(String(child.type)) &&
       child.type !== Select &&
-      child.type !== Input
+      child.type !== Input &&
+      child.type !== NonNegativeInput
     )
       return child;
     const control = child as ReactElement<{ 'aria-label'?: string }>;
@@ -80,6 +81,36 @@ export function Field({ label, children }: { label: string; children: ReactNode 
       </span>
       {namedChildren}
     </label>
+  );
+}
+export function NonNegativeInput({
+  onChange,
+  onKeyDown,
+  onPaste,
+  onBeforeInput,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      type="number"
+      onKeyDown={(e) => {
+        if (e.key === '-' || e.key === 'Subtract') e.preventDefault();
+        onKeyDown?.(e);
+      }}
+      onPaste={(e) => {
+        if (e.clipboardData.getData('text').includes('-')) e.preventDefault();
+        onPaste?.(e);
+      }}
+      onBeforeInput={(e) => {
+        if ((e.nativeEvent as InputEvent).data?.includes('-')) e.preventDefault();
+        onBeforeInput?.(e);
+      }}
+      onChange={(e) => {
+        if (e.currentTarget.value.includes('-')) e.currentTarget.value = '';
+        onChange?.(e);
+      }}
+    />
   );
 }
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
@@ -291,7 +322,7 @@ export function Confirm({
   const [reason, setReason] = useState('');
   const { busy } = useApp();
   return (
-    <Dialog title={title} onClose={onClose}>
+    <Dialog title="Thông báo" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -299,6 +330,7 @@ export function Confirm({
           onConfirm(reason);
         }}
       >
+        {title !== 'Thông báo' && <p><strong>{title}</strong></p>}
         <p>{message}</p>
         {reasonRequired && (
           <Field label={reasonLabel}>

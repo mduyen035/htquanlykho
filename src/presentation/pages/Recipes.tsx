@@ -9,6 +9,7 @@ import {
   FormActions,
   Heading,
   IconButton,
+  NonNegativeInput,
   Panel,
   Search,
   Select,
@@ -243,8 +244,7 @@ function RecipeForm({ recipe, onClose }: { recipe: Recipe; onClose: () => void }
               <tr key={l.materialId}>
                 <td>{db!.materials.find((m) => m.id === l.materialId)?.name}</td>
                 <td>
-                  <input
-                    type="number"
+                  <NonNegativeInput
                     min="0.000001"
                     step="any"
                     aria-label={`Định lượng ${l.materialId}`}

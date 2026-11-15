@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp, useScope } from '../../app/context';
+import { isMock } from '../../app/container';
 import type { Material } from '../../domain/model';
 import { nextCode } from '../../application/execute';
 import { stockOf } from '../../domain/rules';
@@ -13,6 +14,7 @@ import {
   FormActions,
   Heading,
   IconButton,
+  NonNegativeInput,
   Pager,
   Panel,
   Screen,
@@ -323,7 +325,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
         )}
         <div className="form-grid">
           <Field label={editing ? 'Mã NVL' : 'Mã nguyên vật liệu'}>
-            <input value={value.id} disabled />
+            <input value={editing || isMock ? value.id : 'Tự động cấp khi lưu'} disabled />
           </Field>
           {editing ? (
             <Field label="Trạng thái đề xuất">
@@ -331,8 +333,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
             </Field>
           ) : (
             <Field label="Định mức *">
-              <input
-                type="number"
+              <NonNegativeInput
                 min="0"
                 step="any"
                 value={Number.isFinite(value.minimum) ? value.minimum : ''}
@@ -369,8 +370,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
           </Field>
           {editing ? (
             <Field label="Định mức tối thiểu *">
-              <input
-                type="number"
+              <NonNegativeInput
                 min="0"
                 step="any"
                 value={Number.isFinite(value.minimum) ? value.minimum : ''}
@@ -390,7 +390,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
             </div>
           )}
         </div>
-        {user!.role === 'owner' && (
+        {/* {user!.role === 'owner' && (
           <details className="optional-settings">
             <summary>Định mức hao hụt cho phép</summary>
             <Field label={`Hao hụt cho phép / kỳ (${value.unit || 'đơn vị NVL'})`}>
@@ -403,7 +403,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
               />
             </Field>
           </details>
-        )}
+        )} */}
         <FormActions onCancel={close} disabled={!valid} />
       </form>
       {cancel && (

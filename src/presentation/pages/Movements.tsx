@@ -13,6 +13,7 @@ import {
   FormActions,
   Heading,
   IconButton,
+  NonNegativeInput,
   Pager,
   Panel,
   Screen,
@@ -479,9 +480,8 @@ function MovementForm({
                 <td>{db!.materials.find((x) => x.id === l.materialId)?.unit}</td>
                 {!inbound && <td>{fmt(stockOf(db!, m.branchId, l.materialId))}</td>}
                 <td>
-                  <input
+                  <NonNegativeInput
                     aria-label={`Số lượng ${db!.materials.find((x) => x.id === l.materialId)?.name}`}
-                    type="number"
                     min="0.000001"
                     step="any"
                     value={Number.isFinite(l.quantity) ? l.quantity : ''}
@@ -658,9 +658,8 @@ function RecordForm({ movement: m, onClose }: { movement: Movement; onClose: () 
                     </>
                   )}
                   <td>
-                    <input
+                    <NonNegativeInput
                       aria-label={`${inbound ? 'Thực nhận' : 'Thực xuất'} ${mat.name}`}
-                      type="number"
                       step="any"
                       min={inbound ? 0 : 0.000001}
                       value={Number.isFinite(l.received) ? l.received : ''}
@@ -670,9 +669,8 @@ function RecordForm({ movement: m, onClose }: { movement: Movement; onClose: () 
                   {inbound && (
                     <>
                       <td>
-                        <input
+                        <NonNegativeInput
                           aria-label={`Số lượng lỗi ${mat.name}`}
-                          type="number"
                           min="0"
                           step="any"
                           value={Number.isFinite(l.defective) ? l.defective : ''}

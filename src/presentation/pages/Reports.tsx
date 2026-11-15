@@ -212,12 +212,15 @@ export function Reports({ loss = false }: { loss?: boolean }) {
             </>
           ) : (
             <>
-              <input
-                aria-label="Ngày xem"
-                type="date"
-                value={draft.date}
-                onChange={(e) => setDraft({ ...draft, date: e.target.value })}
-              />
+              <label className="report-date-field">
+                <span>Ngày xem:</span>
+                <input
+                  aria-label="Ngày xem"
+                  type="date"
+                  value={draft.date}
+                  onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                />
+              </label>
               {materialSelect}
             </>
           )}
