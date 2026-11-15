@@ -133,8 +133,8 @@ export function Layout() {
             ☰
           </button>
           <nav className="breadcrumb" aria-label="Đường dẫn trang">
-            <Link to="/">{roles[user!.role]}</Link>
-            <span aria-hidden="true"> › </span>
+            {/* <Link to="/">{roles[user!.role]}</Link> */}
+            <span aria-hidden="true"> </span>
             {pathname === '/' ? (
               <Link to="/">Tổng quan</Link>
             ) : (
@@ -144,7 +144,7 @@ export function Layout() {
                 </Link>
                 {screen && screenNames[screen] && (
                   <>
-                    <span aria-hidden="true"> › </span>
+                    {/* <span aria-hidden="true"> › </span> */}
                     <span aria-current="page">{screenNames[screen]}</span>
                   </>
                 )}
