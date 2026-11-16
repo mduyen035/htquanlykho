@@ -5,7 +5,7 @@ import { Dialog, Field } from '../components/ui';
 export function Login() {
   const { login, busy } = useApp();
   const [username, setUsername] = useState(isMock ? 'buiducmanh' : '');
-  const [password, setPassword] = useState(isMock ? 'Trinh@123' : '');
+  const [password, setPassword] = useState(isMock ? '123456' : '');
   const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [help, setHelp] = useState(false);
@@ -24,13 +24,14 @@ export function Login() {
             e.preventDefault();
             setError('');
             if (!username.trim() || !password) {
-              setError('Hãy nhập đầy đủ thông tin!');
+              setError('X Hãy nhập đầy đủ thông tin!');
               return;
             }
             try {
               await login(username.trim(), password);
             } catch (e) {
-              setError(e instanceof Error ? e.message : 'Không đăng nhập được.');
+              // setError(e instanceof Error ? e.message : 'Không đăng nhập được.');
+                setError('X Tên đăng nhập hoặc mật khẩu không đúng.');
             }
           }}
         >
@@ -60,7 +61,7 @@ export function Login() {
           </Field>
           {error && (
             <small className="field-error login-error-hint">
-              {error === 'Hãy nhập đầy đủ thông tin!'
+              {error === 'X Hãy nhập đầy đủ thông tin!'
                 ? 'Kiểm tra lại thông tin đăng nhập.'
                 : 'Vui lòng thử lại!'}
             </small>
@@ -95,7 +96,7 @@ export function Login() {
                 key={id}
                 onClick={() => {
                   setUsername(id);
-                  setPassword('Trinh@123');
+                  setPassword('123456');
                 }}
               >
                 {label}

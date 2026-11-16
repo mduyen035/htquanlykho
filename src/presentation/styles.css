@@ -384,6 +384,12 @@ table {
   font-size: 13px;
   line-height: 20px;
 }
+.outbound-form .table-wrap table {
+  table-layout: fixed;
+}
+.hidden-row-action {
+  display: none;
+}
 th {
   background: #f5f8fb;
   color: var(--secondary);
@@ -509,8 +515,9 @@ td:first-child {
 }
 .empty {
   text-align: center;
-  padding: 40px 20px;
+  padding: 150px 40px;
   color: var(--secondary);
+  font-size: 13pt;
 }
 dialog {
   position: fixed;

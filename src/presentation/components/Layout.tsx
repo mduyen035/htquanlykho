@@ -25,17 +25,17 @@ export function Layout() {
   const screenNames: Record<string, string> = {
     create:
       pathname === '/counts'
-        ? 'Tạo phiếu kiểm kê'
-        : `Tạo phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
+        ? ' › Tạo phiếu kiểm kê'
+        : ` › Tạo phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
     detail:
       pathname === '/materials'
         ? ' › Chi tiết nguyên vật liệu'
         : pathname === '/counts'
-          ? 'Chi tiết phiếu kiểm kê'
+          ? ' › Chi tiết phiếu kiểm kê'
           : pathname.startsWith('/approvals')
-            ? `Đề xuất ${params.get('id')}`
-            : `Chi tiết phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
-    edit: `Sửa phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
+            ? ` › Đề xuất ${params.get('id')}`
+            : ` › Chi tiết phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
+    edit: ` › Sửa phiếu ${pathname === '/inbound' ? 'nhập' : 'xuất'} kho`,
     record: pathname === '/inbound' ? 'Ghi nhận nhập kho' : 'Xác nhận xuất kho',
   };
   useEffect(() => {
@@ -231,9 +231,11 @@ export function Layout() {
       {notice && (
         <div role="status" className={`toast ${notice.startsWith('Lỗi:') ? 'error-toast' : ''}`}>
           {notice}
-          <button aria-label="Đóng thông báo" onClick={() => notify('')}>
-            Đóng
-          </button>
+          {notice.startsWith('Lỗi:') && (
+            <button aria-label="Đóng thông báo" onClick={() => notify('')}>
+              Đóng
+            </button>
+          )}
         </div>
       )}
     </div>

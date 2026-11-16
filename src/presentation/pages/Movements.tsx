@@ -44,17 +44,17 @@ export function MovementFacts({
     ['Chi nhánh', db!.branches.find((b) => b.id === m.branchId)?.name],
     [
       inbound ? 'Nhà cung cấp' : 'Loại xuất kho',
-      inbound ? m.supplier : m.type === 'internal' ? 'Sử dụng nội bộ' : 'Điều chuyển',
+      inbound ? m.supplier : m.type === 'internal' ? 'Xuất sử dụng nội bộ' : 'Xuất điều chuyển',
     ],
   ];
   if (!inbound) items.push(['Lý do xuất', m.reason]);
   items.push(['Ngày lập', dateFmt(m.date)]);
   if (inbound) items.push(['Ngày dự kiến nhận', dateFmt(m.expectedDate)]);
   items.push(['Người lập', m.creator]);
-  if (m.destinationId)
-    items.push(['Chi nhánh nhận', db!.branches.find((b) => b.id === m.destinationId)?.name]);
+  // if (m.destinationId)
+  //   items.push(['Chi nhánh nhận', db!.branches.find((b) => b.id === m.destinationId)?.name]);
   return (
-    <Panel title={`Thông tin phiếu${readOnly ? ' · Chỉ đọc' : ''}`}>
+    <Panel title={`Thông tin phiếu${readOnly ? '' : ''}`}>
       <Facts items={items} />
     </Panel>
   );
@@ -101,8 +101,12 @@ export function Movements({ kind }: { kind: Movement['kind'] }) {
   return (
     <div className={`movement-list ${kind}`}>
       <Heading title={`Quản lý ${inbound ? 'nhập' : 'xuất'} kho`}>
-        {role !== 'staff' && (
-          <button className="primary" onClick={() => view.open('create')}>
+        {(!inbound || role !== 'staff') && (
+          <button
+            className="primary"
+            disabled={role === 'staff'}
+            onClick={() => view.open('create')}
+          >
             + Tạo phiếu {inbound ? 'nhập' : 'xuất'} kho
           </button>
         )}
@@ -167,10 +171,10 @@ export function Movements({ kind }: { kind: Movement['kind'] }) {
           ...(inbound ? ['Dự kiến nhận'] : []),
           'Người lập',
           'Trạng thái',
-          ...(role !== 'staff' ? ['Thao tác'] : []),
+          ...(!inbound || role !== 'staff' ? ['Thao tác'] : []),
         ]}
         empty={!rows.length}
-        emptySubject="phiếu kho"
+        emptySubject="phiếu xuất kho"
       >
         {rows.slice((page - 1) * 10, page * 10).map((m) => (
           <tr key={m.id} className="clickable-row" onClick={() => view.open('detail', m.id)}>
@@ -197,16 +201,16 @@ export function Movements({ kind }: { kind: Movement['kind'] }) {
             <td>
               <Badge status={m.incidentReason ? 'incident' : m.status} />
             </td>
-            {role !== 'staff' && (
+            {(!inbound || role !== 'staff') && (
               <td className="row-actions" onClick={(e) => e.stopPropagation()}>
                 <IconButton
                   type="edit"
-                  disabled={!editableMovement(m)}
+                  disabled={role === 'staff' || !editableMovement(m)}
                   onClick={() => view.open('edit', m.id)}
                 />
                 <IconButton
                   type="trash"
-                  disabled={!editableMovement(m)}
+                  disabled={role === 'staff' || !editableMovement(m)}
                   onClick={() => setRemove(m)}
                 />
               </td>
@@ -217,8 +221,8 @@ export function Movements({ kind }: { kind: Movement['kind'] }) {
       <Pager page={page} total={rows.length} onChange={setPage} />
       {remove && (
         <Confirm
-          title={`Xóa phiếu ${inbound ? 'nhập' : 'xuất'} kho`}
-          message={`Bạn có chắc chắn muốn xóa phiếu ${remove.id}? Phiếu đã xóa không được khôi phục.`}
+          title=''
+          message={`Bạn có chắc chắn muốn xoá phiếu ${inbound ? 'nhập' : 'xuất'} này? Vui lòng nhập lý do để tiếp tục.`}
           reasonRequired
           reasonLabel="Lý do xóa *"
           confirmLabel="Xóa phiếu"
@@ -265,7 +269,7 @@ function MovementDetail({
             'Đơn vị',
             ...(inbound
               ? ['Số lượng đặt', 'Thực nhận', 'Số lượng lỗi', 'Lý do lỗi']
-              : ['Tồn khả dụng', 'Xuất dự kiến']),
+              : ['Tồn khả dụng', 'Xuất dự kiến *']),
           ]}
         >
           {m.lines.map((l) => (
@@ -467,8 +471,7 @@ function MovementForm({
               'Tên nguyên vật liệu',
               'Đơn vị',
               ...(!inbound ? ['Tồn khả dụng'] : []),
-              inbound ? 'Số lượng đặt *' : 'Xuất dự kiến *',
-              'Thao tác',
+              inbound ? 'Số lượng đặt *' : 'Xuất dự kiến *'
             ]}
             empty={!m.lines.length}
             emptySubject="nguyên vật liệu"
@@ -504,7 +507,7 @@ function MovementForm({
                       change({ lines: m.lines.filter((x) => x.materialId !== l.materialId) })
                     }
                   >
-                    × Bỏ
+                    {/* × Bỏ */}
                   </button>
                 </td>
               </tr>
@@ -552,7 +555,7 @@ function MovementForm({
       )}
       {cancel && (
         <Confirm
-          title="Xác nhận hủy"
+          title=""
           message={cancelMessage}
           onClose={() => setCancel(false)}
           onConfirm={onClose}
@@ -637,7 +640,7 @@ function RecordForm({ movement: m, onClose }: { movement: Movement; onClose: () 
               'Đơn vị',
               ...(inbound
                 ? ['Số lượng đặt', 'Thực nhận *', 'Số lượng lỗi *', 'Lý do lỗi']
-                : ['Tồn khả dụng', 'Xuất dự kiến', 'Thực xuất *']),
+                : ['Tồn khả dụng', 'Xuất dự kiến *', 'Thực xuất *']),
             ]}
           >
             {lines.map((l) => {

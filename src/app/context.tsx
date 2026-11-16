@@ -84,7 +84,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       let loggedIn: User;
       if (isMock) {
         if (!accounts[username] || password !== 'Trinh@123')
-          throw new Error('Tên đăng nhập hoặc mật khẩu không đúng.');
+          throw new Error('x Tên đăng nhập hoặc mật khẩu không đúng.');
         loggedIn = accounts[username];
         sessionStorage.setItem('trinh-user', JSON.stringify(loggedIn));
       } else {

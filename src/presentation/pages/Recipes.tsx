@@ -137,7 +137,7 @@ export function Recipes() {
       )}
       {remove && (
         <Confirm
-          title={`Xóa công thức ${remove.name}?`}
+          title=''
           reasonRequired
           reasonLabel="Lý do xóa *"
           onClose={() => setRemove(null)}
@@ -282,7 +282,7 @@ function RecipeForm({ recipe, onClose }: { recipe: Recipe; onClose: () => void }
                     }
                     aria-label={`Bỏ ${l.materialId}`}
                   >
-                    ×
+                    {/* × */}
                   </button>
                 </td>
               </tr>
@@ -341,7 +341,7 @@ function RecipeForm({ recipe, onClose }: { recipe: Recipe; onClose: () => void }
       )}
       {cancel && (
         <Confirm
-          title="Hủy thao tác? Dữ liệu đã nhập sẽ không được lưu."
+          title=""
           message={cancelMessage}
           onClose={() => setCancel(false)}
           onConfirm={onClose}

@@ -69,7 +69,7 @@ export function Materials() {
               ['Tên nguyên vật liệu', selected.name],
               ['Đơn vị', selected.unit],
               [
-                'Trạng thái',
+                'Trạng thái sử dụng',
                 selected.pending
                   ? 'Chờ phê duyệt'
                   : selected.active
@@ -83,7 +83,9 @@ export function Materials() {
         </Panel>
         {role !== 'staff' && (
           <Panel title="Tồn kho theo chi nhánh">
-            <Table headers={['Chi nhánh', 'Tồn kho', 'Định mức tối thiểu', 'Trạng thái']}>
+            <Table
+              headers={['Chi nhánh', 'Tồn kho', 'Định mức tối thiểu', 'Trạng thái tồn kho']}
+            >
               <tr>
                 <td>{db!.branches.find((b) => b.id === branch)?.name}</td>
                 <td>
@@ -94,15 +96,10 @@ export function Materials() {
                 </td>
                 <td>
                   <Badge
-                    status={selected.pending ? 'pending' : undefined}
                     text={
-                      selected.pending
-                        ? 'Chờ phê duyệt'
-                        : !selected.active
-                          ? 'Ngừng sử dụng'
-                          : stockOf(db!, branch, selected.id) < selected.minimum
-                            ? 'Dưới mức tối thiểu'
-                            : 'Đang sử dụng'
+                      stockOf(db!, branch, selected.id) < selected.minimum
+                        ? 'Dưới mức tối thiểu'
+                        : 'Đang sử dụng'
                     }
                   />
                 </td>
@@ -247,7 +244,7 @@ export function Materials() {
       {edit && <MaterialForm material={edit} onClose={() => setEdit(null)} />}
       {remove && (
         <Confirm
-          title="Xóa nguyên vật liệu"
+          title=""
           message={`Bạn có chắc chắn muốn xóa/ngừng sử dụng nguyên vật liệu ${remove.id} · ${remove.name}?`}
           onClose={() => setRemove(null)}
           confirmLabel="Xác nhận"
@@ -408,7 +405,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
       </form>
       {cancel && (
         <Confirm
-          title="Xác nhận hủy"
+          title=""
           message={cancelMessage}
           onClose={() => setCancel(false)}
           onConfirm={onClose}
@@ -416,7 +413,7 @@ function MaterialForm({ material, onClose }: { material: Material; onClose: () =
       )}{' '}
       {confirm && (
         <Confirm
-          title="Xác nhận lưu thay đổi"
+          title=""
           message="Bạn có chắc chắn muốn lưu thay đổi nguyên vật liệu?"
           onClose={() => setConfirm(false)}
           onConfirm={() => void save()}

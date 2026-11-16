@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useApp, useScope } from '../../app/context';
-import { http, isMock } from '../../app/container';
-import type { Database } from '../../domain/model';
 import { lossReport, stockReport } from '../../application/queries';
 import { exportWorkbook } from '../../infrastructure/workbooks';
 import {
@@ -33,63 +31,10 @@ export function Reports({ loss = false }: { loss?: boolean }) {
     [filter, setFilter] = useState(draft),
     [query, setQuery] = useState(''),
     [exporting, setExporting] = useState(false);
-  const [serverStocks, setServerStocks] = useState<Database['stocks'] | null>(null);
-  useEffect(() => {
-    if (isMock || loss) return;
-    let current = true;
-    const at = encodeURIComponent(`${filter.date}T23:59:59.999+07:00`);
-    const from = encodeURIComponent(`${filter.date}T00:00:00+07:00`);
-    void Promise.all(
-      db!.branches.map(async (branch) => {
-        const result = (await http.request(
-          `/reports/inventory?branchId=${encodeURIComponent(branch.id)}&at=${at}&from=${from}`,
-        )) as {
-          items: {
-            materialId: string;
-            code: string;
-            opening: number;
-            inbound: number;
-            outbound: number;
-            adjustment: number;
-            quantity: number;
-          }[];
-        };
-        return result.items.map((item) => ({
-          materialId: item.code || item.materialId,
-          branchId: branch.id,
-          opening: item.opening,
-          inbound: item.inbound,
-          outbound: item.outbound,
-          adjustment: item.adjustment,
-          quantity: item.quantity,
-        }));
-      }),
-    )
-      .then((rows) => {
-        if (current) setServerStocks(rows.flat());
-      })
-      .catch((error) => {
-        if (current)
-          notify(
-            `Lỗi: ${error instanceof Error ? error.message : 'Không tải được báo cáo tồn kho.'}`,
-          );
-      });
-    return () => {
-      current = false;
-    };
-  }, [db, filter.date, loss, notify]);
   const losses = lossReport(db!, user!, filter.period, filter.branch, filter.material).filter((l) =>
     matches(query, l.materialId, l.name),
   );
-  const stocks = (
-    isMock
-      ? stockReport(db!, user!, filter.date, filter.branch, filter.material)
-      : serverStocks || []
-  ).filter(
-    (s) =>
-      (filter.branch === 'all' || s.branchId === filter.branch) &&
-      (filter.material === 'all' || s.materialId === filter.material),
-  );
+  const stocks = stockReport(db!, user!, filter.date, filter.branch, filter.material);
   const branchName = (id: string) =>
     db!.branches.find((b) => b.id === id)?.name.replace('Trình - ', '') || id;
   const stockHeaders = [
@@ -212,15 +157,12 @@ export function Reports({ loss = false }: { loss?: boolean }) {
             </>
           ) : (
             <>
-              <label className="report-date-field">
-                <span>Ngày xem:</span>
-                <input
-                  aria-label="Ngày xem"
-                  type="date"
-                  value={draft.date}
-                  onChange={(e) => setDraft({ ...draft, date: e.target.value })}
-                />
-              </label>
+              <input
+                aria-label="Ngày xem"
+                type="date"
+                value={draft.date}
+                onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+              />
               {materialSelect}
             </>
           )}
@@ -240,10 +182,10 @@ export function Reports({ loss = false }: { loss?: boolean }) {
         {loss && !losses.length ? (
           <div className="empty">
             <EmptyState subject="báo cáo hao hụt" />
-            <p className="caption">
+            {/* <p className="caption">
               Chưa đủ dữ liệu khớp với bộ lọc. Cần dữ liệu bán hàng và phiếu kiểm kê tương ứng với
               kỳ đã chọn.
-            </p>
+            </p> */}
           </div>
         ) : loss ? (
           <Table headers={lossHeaders}>

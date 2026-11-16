@@ -192,7 +192,7 @@ dialog {
   margin-top: 16px;
 }
 .optional-settings .field {
-  margin-top: 10px;
+  margin-top: px;
 }
 .recipe-form-dialog {
   width: 616px;
@@ -646,7 +646,8 @@ dialog {
   flex-direction: column;
   gap: 12px;
   padding: 24px;
-  color: var(--secondary);
+  /* color: var(--secondary); */
+  color: rgb(0, 71, 119);
 }
 .recipe-add-material {
   display: flex;

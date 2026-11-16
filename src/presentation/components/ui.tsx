@@ -173,7 +173,7 @@ export function Badge({ status, text }: { status?: Status; text?: string }) {
 export function EmptyState({ subject = '' }: { subject?: string }) {
   return (
     <span className="empty-state" role="status">
-      <span>Không tìm thấy dữ liệu{subject ? ` ${subject}` : ''} phù hợp.</span>
+      <span><b>Không tìm thấy {subject ? ` ${subject}` : ''} phù hợp. Vui lòng thử lại!</b></span>
     </span>
   );
 }
@@ -307,7 +307,7 @@ export function Confirm({
   onClose,
   onConfirm,
   reasonRequired = false,
-  message = 'Bạn có chắc chắn muốn thực hiện thao tác này?',
+  message = 'Bạn có chắc chắn muốn xoá công thức này? Vui lòng nhập lý do xoá để tiếp tục.',
   confirmLabel = 'Xác nhận',
   cancelLabel = 'Quay lại',
   reasonLabel = 'Lý do *',
@@ -481,4 +481,4 @@ export const periodLabel = (p: string) =>
 export const dateTimeFmt = (date: string) =>
   `${dateFmt(date)} · ${new Date(date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}`;
 export const cancelMessage =
-  'Bạn có chắc chắn muốn hủy thao tác? Các dữ liệu đã nhập sẽ không được lưu.';
+  'Bạn có chắc chắn muốn huỷ thao tác? Các dữ liệu đã nhập sẽ không được lưu.';

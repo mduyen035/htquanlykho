@@ -207,7 +207,7 @@ test('login shows both specified error states while retaining typed credentials'
   await shot(page, 'login-empty');
   await page.getByLabel('Mật khẩu', { exact: true }).fill('wrong');
   await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Tên đăng nhập hoặc mật khẩu không đúng');
+  await expect(page.getByRole('alert')).toContainText('xxxx Tên đăng nhập hoặc mật khẩu không đúng');
   await expect(page.getByLabel('Tên đăng nhập', { exact: true })).toHaveValue('buiducmanh');
   await shot(page, 'login-wrong');
 });
